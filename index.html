@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analyzer</title>
+    <style>
+        body {
+            font-family: Roboto, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        p {
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        #fileInput {
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .emotion-card {
+            background-color: #e0f7fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        #result table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        #result th,
+        #result td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #result th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sentiment Analyzer</h1>
+    <p>This web application allows you to analyze the sentiment of text data in CSV format. Upload a CSV file containing
+        a column named "phrase," and the application will provide sentiment labels along with visualizations of emotion
+        distribution.</p>
+
+    <input type="file" id="fileInput" accept=".csv">
+    <button onclick="analyze()">Analyze CSV</button>
+
+    <div id="result"></div>
+
+    <script>
+        function analyze() {
+            var fileInput = document.getElementById("fileInput");
+            var file = fileInput.files[0];
+
+            if (file) {
+                var formData = new FormData();
+                formData.append('file', file);
+
+                fetch('http://127.0.0.1:8000/analyze_sentiment_csv', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.emotion_labels) {
+                            // Display the emotion labels
+                            document.getElementById("result").innerHTML = '<h2>Emotion Labels:</h2><table>' +
+                                '<tr><th>Emotion</th><th>Score</th></tr>' +
+                                data.emotion_labels.map(label => '<tr><td>' + label['label'] + '</td><td>' + label['score'] + '</td></tr>').join('') +
+                                '</table>';
+                            ;
+
+
+                            // Display the bar chart and pie chart 
+                            document.getElementById("result").innerHTML += '<h2>Bar Chart and Pie Chart:</h2><img src="data:image/png;base64,' + data.chart_img + '" alt="Bar Chart" />';
+
+
+                        } else {
+                            document.getElementById("result").innerText = data.error || 'Error occurred.';
+                            }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById("result").innerText = 'Error occurred.';
+                    });
+            } else {
+                document.getElementById("result").innerText = 'Please select a CSV file.';
+            }
+        }   
+    </script>
+</body>
+
+</html>

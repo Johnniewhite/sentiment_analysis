@@ -1,0 +1,7 @@
+flask
+transformers
+tensorflow
+pandas
+numpy
+matplotlib
+io
